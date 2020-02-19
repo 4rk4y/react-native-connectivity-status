@@ -12,6 +12,8 @@
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 // Location permission status
+NSString* const RNCS_PERMISSION_LOCATION_NOT_DETERMINED = @"Location.Permission.NotDetermined";
+NSString* const RNCS_PERMISSION_LOCATION_RESTRICTED = @"Location.Permission.Restricted";
 NSString* const RNCS_PERMISSION_LOCATION_GRANTED_ALWAYS = @"Location.Permission.Granted.Always";
 NSString* const RNCS_PERMISSION_LOCATION_GRANTED_WHEN_IN_USE = @"Location.Permission.Granted.WhenInUse";
 NSString* const RNCS_PERMISSION_LOCATION_DENIED = @"Location.Permission.Denied";
@@ -60,8 +62,10 @@ RCT_EXPORT_MODULE()
 {
     return @{
              @"Permissions": @{
+                     @"LocationNotDetermined": RNCS_PERMISSION_LOCATION_NOT_DETERMINED,
+                     @"LocationRestricted": RNCS_PERMISSION_LOCATION_RESTRICTED,
                      @"LocationGrantedAlways": RNCS_PERMISSION_LOCATION_GRANTED_ALWAYS,
-                     @"LocationGrantedWhenInUse": RNCS_PERMISSION_LOCATION_GRANTED_ALWAYS,
+                     @"LocationGrantedWhenInUse": RNCS_PERMISSION_LOCATION_GRANTED_WHEN_IN_USE,
                      @"LocationDenied": RNCS_PERMISSION_LOCATION_DENIED
                      }
              };
@@ -136,10 +140,14 @@ RCT_EXPORT_METHOD(isBluetoothEnabled:(RCTPromiseResolveBlock) resolve
 
 - (LocationPermissionState)isLocationPermissionGranted {
     switch (CLLocationManager.authorizationStatus) {
-        case kCLAuthorizationStatusAuthorizedWhenInUse:
-            return LocationPermissionWhenInUse;
+        case kCLAuthorizationStatusNotDetermined:
+            return LocationPermissionNotDetermined;
+        case kCLAuthorizationStatusRestricted:
+            return LocationPermissionRestricted;
         case kCLAuthorizationStatusAuthorizedAlways:
             return LocationPermissionAlways;
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            return LocationPermissionWhenInUse;
         default:
             return LocationPermissionOff;
     }
@@ -149,11 +157,17 @@ RCT_EXPORT_METHOD(isLocationPermissionGranted:(RCTPromiseResolveBlock) resolve
                   rejecter:(RCTPromiseRejectBlock) reject) {
     LocationPermissionState state = [self isLocationPermissionGranted];
     switch (state) {
-        case LocationPermissionWhenInUse:
-            resolve(RNCS_PERMISSION_LOCATION_GRANTED_WHEN_IN_USE);
+        case LocationPermissionNotDetermined:
+            resolve(RNCS_PERMISSION_LOCATION_NOT_DETERMINED);
+            break;
+        case LocationPermissionRestricted:
+            resolve(RNCS_PERMISSION_LOCATION_RESTRICTED);
             break;
         case LocationPermissionAlways:
             resolve(RNCS_PERMISSION_LOCATION_GRANTED_ALWAYS);
+            break;
+        case LocationPermissionWhenInUse:
+            resolve(RNCS_PERMISSION_LOCATION_GRANTED_WHEN_IN_USE);
             break;
         case LocationPermissionOff:
             resolve(RNCS_PERMISSION_LOCATION_DENIED);

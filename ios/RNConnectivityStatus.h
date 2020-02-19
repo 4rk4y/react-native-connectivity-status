@@ -20,9 +20,11 @@
 #define EVENT_STATUS @"status"
 
 typedef NS_ENUM(NSInteger, LocationPermissionState) {
-    LocationPermissionOff,
+    LocationPermissionNotDetermined,
+    LocationPermissionRestricted,
+    LocationPermissionAlways,
     LocationPermissionWhenInUse,
-    LocationPermissionAlways
+    LocationPermissionOff
 };
 
 @end
